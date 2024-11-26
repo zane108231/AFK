@@ -137,10 +137,6 @@ setInterval(() => {
     AutoAuth: 'bot1122033'
   });
 
-  if (bot) { // Ensure bot is defined
-    bot.swingArm();
-  }
-}, 5000);  // Swing the arm every 5 seconds
 
 // Start an Express server to serve the index page
 app.listen(3000, () => {
