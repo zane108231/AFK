@@ -110,7 +110,7 @@ function createBot() {
       bot.chat('I Love you Too Meri jaan :)');
       stopGuarding();
     }
-  });
+  })
 
   // Error and kick handling
   bot.on('kicked', console.log);
