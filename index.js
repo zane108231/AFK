@@ -1,132 +1,99 @@
-const express = require("express");
-const mineflayer = require("mineflayer");
-const pvp = require("mineflayer-pvp").plugin;
-const { pathfinder, Movements, goals } = require("mineflayer-pathfinder");
-const armorManager = require("mineflayer-armor-manager");
-const AutoAuth = require("mineflayer-auto-auth");
-const app = express();
+  const mineflayer = require("mineflayer");
+  const { pathfinder, Movements, goals } = require("mineflayer-pathfinder");
+  const pvp = require("mineflayer-pvp").plugin;
+  const armorManager = require("mineflayer-armor-manager");
+  const AutoAuth = require("mineflayer-auto-auth");
 
-app.use(express.json());
+  function createBot() {
+    const bot = mineflayer.createBot({
+      host: "sixseven98.aternos.me", // Server address
+      port: 54723, // Server port
+      username: "Afkbot", // Bot username
+      version: false, // Use false to auto-detect the version
+      plugins: [AutoAuth], // Plugins for the bot
+      AutoAuth: "bot1122033", // Password for AutoAuth
+    });
 
-// Serve the index.html file on the root endpoint
-app.get("/", (_, res) => res.sendFile(__dirname + "/index.html"));
-app.listen(process.env.PORT, () => {
-  console.log("Server is live!");
-});
+    // Load additional plugins
+    bot.loadPlugin(pathfinder);
+    bot.loadPlugin(pvp);
+    bot.loadPlugin(armorManager);
 
-// Create the bot and load plugins
-function createBot() {
-  const bot = mineflayer.createBot({
-    host: "sixseven98.aternos.me",
-    version: false, // Set to a specific version if needed, e.g. '1.16.5'
-    username: "Afkbot",
-    port: 54723,
-    plugins: [AutoAuth],
-    AutoAuth: "bot1122033",
-  });
+    let guardPos = null;
 
-  // Load additional plugins
-  bot.loadPlugin(pvp);
-  bot.loadPlugin(armorManager);
-  bot.loadPlugin(pathfinder);
+    // Guard area functionality
+    function guardArea(pos) {
+      guardPos = pos.clone();
 
-  // Handle player collection events and equip sword/shield
-  bot.on("playerCollect", (collector) => {
-    if (collector !== bot.entity) return;
-
-    setTimeout(() => {
-      const sword = bot.inventory.items().find((item) =>
-        item.name.includes("sword")
-      );
-      if (sword) bot.equip(sword, "hand");
-    }, 150);
-
-    setTimeout(() => {
-      const shield = bot.inventory.items().find((item) =>
-        item.name.includes("shield")
-      );
-      if (shield) bot.equip(shield, "off-hand");
-    }, 250);
-  });
-
-  let guardPos = null;
-
-  // Guarding functionality
-  function guardArea(pos) {
-    guardPos = pos.clone();
-
-    if (!bot.pvp.target) {
-      moveToGuardPos();
-    }
-  }
-
-  function stopGuarding() {
-    guardPos = null;
-    bot.pvp.start();
-    bot.pathfinder.setGoal(null);
-  }
-
-  function moveToGuardPos() {
-    const mcData = require("minecraft-data")(bot.version);
-    bot.pathfinder.setMovements(new Movements(bot, mcData));
-    bot.pathfinder.setGoal(
-      new goals.GoalBlock(guardPos.x, guardPos.y, guardPos.z)
-    );
-  }
-
-  bot.on("stoppedAttacking", () => {
-    if (guardPos) {
-      moveToGuardPos();
-    }
-  });
-
-  bot.on("physicTick", () => {
-    if (bot.pvp.target) return;
-    if (bot.pathfinder.isMoving()) return;
-
-    const entity = bot.nearestEntity();
-    if (entity) bot.lookAt(entity.position.offset(0, entity.height, 0));
-  });
-
-  bot.on("physicTick", () => {
-    if (!guardPos) return;
-
-    const filter = (e) =>
-      e.type === "mob" &&
-      e.position.distanceTo(bot.entity.position) < 16 &&
-      e.mobType !== "Armor Stand";
-    const entity = bot.nearestEntity(filter);
-    if (entity) {
-      bot.pvp.attack(entity);
-    }
-  });
-
-  // Handle bot chat commands
-  bot.on("chat", (username, message) => {
-    if (message === "guard") {
-      const player = bot.players[username];
-      if (!player) {
-        bot.chat("I will!");
-        guardArea(player.entity.position);
+      if (!bot.pvp.target) {
+        moveToGuardPos();
       }
     }
 
-    if (message === "love you") {
-      bot.chat("I Love you Too Meri jaan :)");
-      stopGuarding();
+    function stopGuarding() {
+      guardPos = null;
+      bot.pvp.stop();
+      bot.pathfinder.setGoal(null);
     }
-  });
 
-  // Error and kick handling
-  bot.on("kicked", console.log);
-  bot.on("error", console.log);
-  bot.on("end", createBot);
-}
+    function moveToGuardPos() {
+      const mcData = require("minecraft-data")(bot.version);
+      const movements = new Movements(bot, mcData);
+      bot.pathfinder.setMovements(movements);
+      bot.pathfinder.setGoal(new goals.GoalBlock(guardPos.x, guardPos.y, guardPos.z));
+    }
 
-// Start the bot and ensure it's running
-createBot();
+    bot.on("stoppedAttacking", () => {
+      if (guardPos) moveToGuardPos();
+    });
 
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-});
+    bot.on("physicTick", () => {
+      if (!guardPos) return;
+
+      const filter = (e) =>
+        e.type === "mob" &&
+        e.position.distanceTo(bot.entity.position) < 16 &&
+        e.mobType !== "Armor Stand";
+      const entity = bot.nearestEntity(filter);
+
+      if (entity) {
+        bot.pvp.attack(entity);
+      }
+    });
+
+    // Chat command handlers
+    bot.on("chat", (username, message) => {
+      const player = bot.players[username]?.entity;
+
+      if (message === "guard" && player) {
+        bot.chat("I will guard this area!");
+        guardArea(player.position);
+      }
+
+      if (message === "love you") {
+        bot.chat("I love you too, meri jaan! ❤️");
+        stopGuarding();
+      }
+    });
+
+    // Log disconnections and reconnect
+    bot.on("end", (reason) => {
+      console.log(`Bot disconnected: ${reason}`);
+      console.log("Reconnecting in 5 seconds...");
+      setTimeout(createBot, 5000);
+    });
+
+    // Log kicks and errors
+    bot.on("kicked", (reason, loggedIn) => {
+      console.log(`Bot kicked: ${reason}`);
+      console.log(`Logged in: ${loggedIn}`);
+    });
+
+    bot.on("error", (err) => {
+      console.error(`Bot error: ${err.message}`);
+    });
+
+    console.log("Bot has been started and connected!");
+  }
+
+  createBot();
