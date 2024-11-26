@@ -105,7 +105,6 @@ function createBot() {
   bot.on("chat", (username, message) => {
     if (message === "guard") {
       const player = bot.players[username];
-
       if (!player) {
         bot.chat("I will!");
         guardArea(player.entity.position);
