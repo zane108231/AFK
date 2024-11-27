@@ -49,8 +49,8 @@ function createBot() {
   bot.on("end", (reason) => {
     console.log(`Bot disconnected from server. Reason: ${reason}`);
     botStatus = "Disconnected"; // Update status to "Disconnected"
-    console.log("Attempting to reconnect in 5 seconds...");
-    setTimeout(createBot, 5000); // Reconnect after 5 seconds
+    console.log("Attempting to reconnect in 30 seconds...");
+    setTimeout(createBot, 30000); // Reconnect after 5 seconds
   });
 
   // Update status if the bot is kicked from the server
@@ -58,14 +58,15 @@ function createBot() {
     console.log(`Bot kicked from the server. Reason: ${reason}`);
     console.log(`Was logged in? ${loggedIn}`);
     botStatus = "Disconnected"; // Update status to "Disconnected"
-    console.log("Attempting to reconnect in 5 seconds...");
-    setTimeout(createBot, 5000); // Reconnect after 5 seconds
+    console.log("Attempting to reconnect in 30 seconds...");
+    setTimeout(createBot, 30000); // Reconnect after 5 seconds
   });
 
   // Enhanced error logging
   bot.on("error", (err) => {
     console.error("Bot encountered an error:", err.message);
     console.error("Stack trace:", err.stack);
+   setTimeout(createBot, 30000); // Reconnect after 5 seconds
   });
 
   // Log server chat messages
