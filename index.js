@@ -17,7 +17,7 @@ function createBot() {
   const bot = mineflayer.createBot({
     host: "minekrapjihyo.aternos.me", // Server address
     port: 53281, // Server port
-    username: "AfkbotJihyo", // Bot username
+    username: "DaddyAfkbotJihyo", // Bot username
     version: false, // Use false to auto-detect the version
   });
 
