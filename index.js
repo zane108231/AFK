@@ -3,14 +3,19 @@ const { pathfinder, Movements, goals } = require("mineflayer-pathfinder");
 const pvp = require("mineflayer-pvp").plugin;
 const armorManager = require("mineflayer-armor-manager");
 const AutoAuth = require("mineflayer-auto-auth");
+const express = require("express");
 const app = express();
+const port = process.env.PORT || 3000;
 
+// Serve the HTML file
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
 
-app.use(express.json());
-
-app.get("/", (_, res) => res.sendFile(__dirname + "/index.html"));
-app.listen(process.env.PORT);
-
+// Start the server
+app.listen(port, () => {
+  console.log(`Express server running on port ${port}`);
+});
 function createBot() {
   const bot = mineflayer.createBot({
     host: "minekrapjihyo.aternos.me", // Server address
