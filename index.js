@@ -1,8 +1,4 @@
 const mineflayer = require("mineflayer");
-const { pathfinder, Movements, goals } = require("mineflayer-pathfinder");
-const pvp = require("mineflayer-pvp").plugin;
-const armorManager = require("mineflayer-armor-manager");
-const AutoAuth = require("mineflayer-auto-auth");
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
@@ -16,77 +12,33 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Express server running on port ${port}`);
 });
+
 function createBot() {
   const bot = mineflayer.createBot({
     host: "minekrapjihyo.aternos.me", // Server address
     port: 53281, // Server port
-    username: "DaddyAfkbotJihyo", // Bot username
+    username: "AfkbotJihyo", // Bot username
     version: false, // Use false to auto-detect the version
-    plugins: [AutoAuth], // Plugins for the bot
-    AutoAuth: "bot1122033", // Password for AutoAuth
   });
 
-  // Load additional plugins
-  bot.loadPlugin(pathfinder);
-  bot.loadPlugin(pvp);
-  bot.loadPlugin(armorManager);
+  // Move forward and backward alternately
+  let moveForward = true;
 
-  let guardPos = null;
-
-  // Guard area functionality
-  function guardArea(pos) {
-    guardPos = pos.clone();
-
-    if (!bot.pvp.target) {
-      moveToGuardPos();
+  function toggleMovement() {
+    if (moveForward) {
+      bot.setControlState("forward", true);
+      setTimeout(() => bot.setControlState("forward", false), 500); // Stop after a short press
+    } else {
+      bot.setControlState("back", true);
+      setTimeout(() => bot.setControlState("back", false), 500); // Stop after a short press
     }
+    moveForward = !moveForward; // Switch direction for next time
   }
 
-  function stopGuarding() {
-    guardPos = null;
-    bot.pvp.stop();
-    bot.pathfinder.setGoal(null);
-  }
-
-  function moveToGuardPos() {
-    const mcData = require("minecraft-data")(bot.version);
-    const movements = new Movements(bot, mcData);
-    bot.pathfinder.setMovements(movements);
-    bot.pathfinder.setGoal(new goals.GoalBlock(guardPos.x, guardPos.y, guardPos.z));
-  }
-
-  bot.on("stoppedAttacking", () => {
-    if (guardPos) moveToGuardPos();
-  });
-
-  bot.on("physicTick", () => {
-    if (!guardPos) return;
-
-    const filter = (e) =>
-      e.type === "mob" &&
-      e.position.distanceTo(bot.entity.position) < 16 &&
-      e.mobType !== "Armor Stand";
-    const entity = bot.nearestEntity(filter);
-
-    if (entity) {
-      bot.pvp.attack(entity);
-    }
-  });
-
-  // Chat command handlers
-  bot.on("chat", (username, message) => {
-    const player = bot.players[username]?.entity;
-
-    if (message === "guard" && player) {
-      bot.chat("I will guard this area!");
-      guardArea(player.position);
-    }
-
-    if (message === "love you") {
-      bot.chat("I love you too, meri jaan! ❤️");
-      stopGuarding();
-    }
-  });
+  // Execute movement every 5-10 seconds
+  setInterval(() => {
+    toggleMovement();
+  }, Math.random() * 5000 + 5000); // Random interval between 5-10 seconds
 
   // Log disconnections and reconnect
   bot.on("end", (reason) => {
