@@ -46,21 +46,22 @@ function createBot() {
   });
 
   // Update status when bot is disconnected (either manually or by server)
-  bot.on("end", (reason) => {
-    console.log(`Bot disconnected from server. Reason: ${reason}`);
-    botStatus = "Disconnected"; // Update status to "Disconnected"
-    console.log("Attempting to reconnect in 30 seconds...");
-    setTimeout(createBot, 30000); // Reconnect after 5 seconds
-  });
+bot.on("end", (reason) => {
+  console.log(`Bot disconnected from server. Reason: ${reason}`);
+  botStatus = "Disconnected"; // Update status to "Disconnected"
+  const reconnectDelay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000; // Random delay between 5-10 seconds
+  console.log(`Attempting to reconnect in ${reconnectDelay / 1000} seconds...`);
+  setTimeout(createBot, reconnectDelay);
+});
 
-  // Update status if the bot is kicked from the server
-  bot.on("kicked", (reason, loggedIn) => {
-    console.log(`Bot kicked from the server. Reason: ${reason}`);
-    console.log(`Was logged in? ${loggedIn}`);
-    botStatus = "Disconnected"; // Update status to "Disconnected"
-    console.log("Attempting to reconnect in 30 seconds...");
-    setTimeout(createBot, 30000); // Reconnect after 5 seconds
-  });
+bot.on("kicked", (reason, loggedIn) => {
+  console.log(`Bot kicked from the server. Reason: ${reason}`);
+  console.log(`Was logged in? ${loggedIn}`);
+  botStatus = "Disconnected"; // Update status to "Disconnected"
+  const reconnectDelay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000; // Random delay between 5-10 seconds
+  console.log(`Attempting to reconnect in ${reconnectDelay / 1000} seconds...`);
+  setTimeout(createBot, reconnectDelay);
+});
 
   // Enhanced error logging
   bot.on("error", (err) => {
