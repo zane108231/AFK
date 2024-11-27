@@ -1,17 +1,4 @@
 const mineflayer = require("mineflayer");
-const express = require("express");
-const app = express();
-const port = process.env.PORT || 3000;
-
-// Serve the HTML file
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Express server running on port ${port}`);
-});
 
 function createBot() {
   const bot = mineflayer.createBot({
