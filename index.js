@@ -3,6 +3,13 @@ const { pathfinder, Movements, goals } = require("mineflayer-pathfinder");
 const pvp = require("mineflayer-pvp").plugin;
 const armorManager = require("mineflayer-armor-manager");
 const AutoAuth = require("mineflayer-auto-auth");
+const app = express();
+
+
+app.use(express.json());
+
+app.get("/", (_, res) => res.sendFile(__dirname + "/index.html"));
+app.listen(process.env.PORT);
 
 function createBot() {
   const bot = mineflayer.createBot({
