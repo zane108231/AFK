@@ -18,7 +18,7 @@ function createBot() {
   bot.on("end", (reason) => {
     console.log(`Bot disconnected from server. Reason: ${reason}`);
     console.log("Attempting to reconnect in 5 seconds...");
-    setTimeout(createBot, 5000); // Reconnect after 5 seconds
+    setTimeout(createBot, 50000); // Reconnect after 5 seconds
   });
 
   // Log if the bot is kicked from the server
@@ -26,7 +26,7 @@ function createBot() {
     console.log(`Bot kicked from the server. Reason: ${reason}`);
     console.log(`Was logged in? ${loggedIn}`);
     console.log("Attempting to reconnect in 5 seconds...");
-    setTimeout(createBot, 5000); // Reconnect after 5 seconds
+    setTimeout(createBot, 50000); // Reconnect after 5 seconds
   });
 
   // Enhanced error logging
