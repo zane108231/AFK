@@ -1,4 +1,34 @@
 const mineflayer = require("mineflayer");
+const express = require("express");
+const app = express();
+const port = process.env.PORT || 3000;  // Use port 3000 or environment-defined port
+
+// Serve the status webpage
+let botStatus = "Disconnected"; // Initialize status as disconnected
+
+app.get("/", (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>Bot Status</title>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+          h1 { color: #4CAF50; }
+          .status { font-size: 20px; font-weight: bold; color: ${botStatus === "Connected" ? 'green' : 'red'}; }
+        </style>
+      </head>
+      <body>
+        <h1>Bot Status</h1>
+        <p class="status">The bot is currently: ${botStatus}</p>
+      </body>
+    </html>
+  `);
+});
+
+// Start the web server
+app.listen(port, () => {
+  console.log(`Express server running on port ${port}`);
+});
 
 // Function to create the bot and handle connection
 function createBot() {
@@ -9,24 +39,27 @@ function createBot() {
     version: false, // Auto-detect version
   });
 
-  // Log when the bot connects to the server
+  // Update status when bot connects
   bot.on("spawn", () => {
     console.log("Bot has successfully spawned and connected!");
+    botStatus = "Connected"; // Update status to "Connected"
   });
 
-  // Log when the bot is disconnected (either manually or by server)
+  // Update status when bot is disconnected (either manually or by server)
   bot.on("end", (reason) => {
     console.log(`Bot disconnected from server. Reason: ${reason}`);
+    botStatus = "Disconnected"; // Update status to "Disconnected"
     console.log("Attempting to reconnect in 5 seconds...");
-    setTimeout(createBot, 50000); // Reconnect after 5 seconds
+    setTimeout(createBot, 5000); // Reconnect after 5 seconds
   });
 
-  // Log if the bot is kicked from the server
+  // Update status if the bot is kicked from the server
   bot.on("kicked", (reason, loggedIn) => {
     console.log(`Bot kicked from the server. Reason: ${reason}`);
     console.log(`Was logged in? ${loggedIn}`);
+    botStatus = "Disconnected"; // Update status to "Disconnected"
     console.log("Attempting to reconnect in 5 seconds...");
-    setTimeout(createBot, 50000); // Reconnect after 5 seconds
+    setTimeout(createBot, 5000); // Reconnect after 5 seconds
   });
 
   // Enhanced error logging
@@ -35,19 +68,19 @@ function createBot() {
     console.error("Stack trace:", err.stack);
   });
 
-  // Log bot status
+  // Log server chat messages
   bot.on("chat", (username, message) => {
     console.log(`[Chat] ${username}: ${message}`);
   });
 
-  // Log bot status when it starts interacting with entities
-  bot.on("health", (health) => {
-    console.log(`Bot health: ${health}`);
+  // Log bot health changes
+  bot.on("health", () => {
+    console.log(`Bot health: ${bot.health}`);
   });
 
-  // Log bot movements and actions (e.g., when it starts placing or breaking blocks)
-  bot.on("move", (position) => {
-    console.log(`Bot moved to position: ${JSON.stringify(position)}`);
+  // Log bot movements
+  bot.on("move", () => {
+    console.log(`Bot moved to position: ${JSON.stringify(bot.entity.position)}`);
   });
 
   // Catch any uncaught exceptions and log them
@@ -62,4 +95,5 @@ function createBot() {
   });
 }
 
+// Start the bot
 createBot();
